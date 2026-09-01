@@ -2,7 +2,7 @@
 
 decide(code, line) -> "FLAG" | "SAFE".  FLAG iff the given line assigns a non-empty, non-placeholder
 string literal to a credential-like name, or passes one as a credential-like keyword argument. The
-value may be the literal itself OR a name bound to a module-level string constant, so
+value may be the literal itself OR a name bound to a string constant assigned elsewhere in the file, so
 `PW = "hunter2"` ... `connect(password=PW)` is decided on the line that uses it.
 
 SAFE when the value comes from the environment or configuration (os.environ, os.getenv, config.get,
@@ -81,7 +81,12 @@ def _origin(call, binds, local):
 
 
 def _const_strs(tree):
-    """modul-szintu `NEV = "literal"` / `NEV = b"literal"` konstansok (konstans-propagacio)."""
+    """Egyszeru `NEV = <string/bytes literal>` ertekadasok BARHOL a fajlban.
+
+    FONTOS es szandekosan kimondva: ez NEM scope-erzekeny -- egy fuggvenyen BELULI ertekadas is
+    bekerul, es igy egy masik fuggvenyben szereplo AZONOS NEVU valtozora is ervenyesnek latszik.
+    Ez tudatos TUL-KOZELITES a rejtett literal fele; az arat a known_limitations.jsonl rogziti.
+    """
     out = {}
     for n in ast.walk(tree):
         if isinstance(n, ast.Assign) and isinstance(n.value, ast.Constant) \

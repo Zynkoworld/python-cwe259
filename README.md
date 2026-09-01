@@ -45,5 +45,11 @@ What it still cannot see:
 `SAFE` therefore means *"the stated syntactic condition was not established here"*, not *"this code is
 secure"*. The corpus below is a floor on the decider's behaviour, not a measure of its coverage.
 
+Those limitations are **concrete and re-checkable**, not a disclaimer: `probes/known_limitations.jsonl`
+lists the exact forms this decider does not see, each with its current verdict and the reason. That file
+is deliberately **not** part of the `verify.py` gate — labelling those cases `SAFE` in the gate corpus
+would hide the gap instead of recording it. If a later version closes one of them, the change is visible
+there.
+
 ## License
 Apache-2.0 (see `LICENSE`).
