@@ -72,7 +72,7 @@ def _origin(call, binds, local, consts=None):
     """
     f = call.func
     if isinstance(f, ast.Call) and isinstance(f.func, ast.Name) and f.func.id == "getattr" \
-            and "getattr" not in local and len(f.args) == 2:
+            and "getattr" not in local and len(f.args) >= 2:
         attr = f.args[1]
         name = None
         if isinstance(attr, ast.Constant) and isinstance(attr.value, str):
@@ -93,20 +93,66 @@ def _origin(call, binds, local, consts=None):
     return _resolve(d, binds)
 
 
+def _fold_str(node, tbl):
+    """Statikusan kihajthato string/bytes ertek, vagy None.
+
+    Kihajtja a konstans-osszefuzest (`'md' + '5'`) es a csak-konstans f-stringet (`f'md{5}'`), es
+    feloldja a mar ismert neveket -- de csak azokat, amelyek EDDIG kerultek a tablaba, igy a
+    sorrend-tudatos (last-write-wins) viselkedes megmarad.
+    """
+    if isinstance(node, ast.Constant) and isinstance(node.value, (str, bytes)):
+        return node.value
+    if isinstance(node, ast.Name):
+        return tbl.get(node.id)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        a, b = _fold_str(node.left, tbl), _fold_str(node.right, tbl)
+        if isinstance(a, str) and isinstance(b, str):
+            return a + b
+        if isinstance(a, bytes) and isinstance(b, bytes):
+            return a + b
+        return None
+    if isinstance(node, ast.JoinedStr):
+        parts = []
+        for v in node.values:
+            if isinstance(v, ast.Constant) and isinstance(v.value, str):
+                parts.append(v.value)
+            elif isinstance(v, ast.FormattedValue) and v.format_spec is None \
+                    and v.conversion in (-1, None):
+                inner = v.value
+                if isinstance(inner, ast.Constant) and isinstance(inner.value, (str, int, float)) \
+                        and not isinstance(inner.value, bool):
+                    parts.append(str(inner.value))
+                else:
+                    c = _fold_str(inner, tbl)
+                    if not isinstance(c, str):
+                        return None
+                    parts.append(c)
+            else:
+                return None
+        return "".join(parts)
+    return None
+
+
 def _const_strs(tree):
-    """Egyszeru `NEV = <string/bytes literal>` ertekadasok BARHOL a fajlban.
+    """Egyszeru `NEV = <statikusan kihajthato string/bytes>` ertekadasok BARHOL a fajlban.
+
+    Kihajtja a konstans-osszefuzest es a csak-konstans f-stringet is -- egy nev akkor szamit
+    ismertnek, ha az ERTEKE a forrasbol kiszamolhato, nem csak ha puszta literal.
 
     FONTOS es szandekosan kimondva: ez NEM scope-erzekeny -- egy fuggvenyen BELULI ertekadas is
     bekerul, es igy egy masik fuggvenyben szereplo AZONOS NEVU valtozora is ervenyesnek latszik.
     Ez tudatos TUL-KOZELITES a rejtett literal fele; az arat a known_limitations.jsonl rogziti.
+    A tabla SORREND-TUDATOS: a kesobbi ertekadas felulirja a korabbit (last-write-wins).
     """
     out = {}
     for n in ast.walk(tree):
-        if isinstance(n, ast.Assign) and isinstance(n.value, ast.Constant) \
-                and isinstance(n.value.value, (str, bytes)):
+        if isinstance(n, ast.Assign):
+            v = _fold_str(n.value, out)
+            if v is None:
+                continue
             for t in n.targets:
                 if isinstance(t, ast.Name):
-                    out[t.id] = n.value.value
+                    out[t.id] = v
     return out
 
 

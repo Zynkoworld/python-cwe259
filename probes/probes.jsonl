@@ -14,3 +14,5 @@
 {"code": "PW = ''\nconn = connect(password=PW)\n", "line": 2, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19219 review: binding vs name)"}
 {"code": "PW = 'changeme'\nconn = connect(password=PW)\n", "line": 2, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19219 review: binding vs name)"}
 {"code": "import os\nPW = os.environ['DB_PW']\nconn = connect(password=PW)\n", "line": 3, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19219 review: binding vs name)"}
+{"code": "PW = 'hun' + 'ter2'\nconn = connect(password=PW)\n", "line": 2, "expected_verdict": "FLAG", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19255: statically foldable name; order-sensitivity regression guard)"}
+{"code": "PW = 'change' + 'me'\nconn = connect(password=PW)\n", "line": 2, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19255: statically foldable name; order-sensitivity regression guard)"}

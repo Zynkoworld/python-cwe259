@@ -6,14 +6,14 @@ An **oracle** *deterministically decides* the truth of a case — it doesn't gue
 for a given piece of Python code and a line number, whether that line constitutes **hard-coded password/credential** (CWE-259).
 
 ## Proven
-Measured on a **discriminating** probe corpus of **16 cases (7 flagged + 9 safe)** — verified by
+Measured on a **discriminating** probe corpus of **18 cases (8 flagged + 10 safe)** — verified by
 running the oracle, not asserted:
 
 ```
 recall = 1.000    false_positives = 0    non-degenerate = yes  ->  PASS
 ```
 
-These numbers hold **on the published probe set (N=16)**. A probe set is a floor, not a
+These numbers hold **on the published probe set (N=18)**. A probe set is a floor, not a
 coverage measure — see *Known limitations* below.
 
 `verify.py` (stdlib only, no network) is the CI gate.
