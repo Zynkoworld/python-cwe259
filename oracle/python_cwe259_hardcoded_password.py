@@ -63,14 +63,27 @@ def _local_defs(tree):
     return out
 
 
-def _origin(call, binds, local):
-    """A hivott dolog KOTES szerinti teljes neve. None = nem eldontheto. '<local>.' = sajat definicio."""
+def _origin(call, binds, local, consts=None):
+    """A hivott dolog KOTES szerinti teljes neve. None = nem eldontheto. '<local>.' = sajat definicio.
+
+    A getattr-ag feloldja a konstans attributum-nevet is -- literalkent (`getattr(m, "md5")`) ES
+    konstanshoz kotott nevkent (`n = "md5"; getattr(m, n)`). A VALODIAN dinamikus nev (`n = pick()`)
+    nem oldhato fel a forrasbol; ott None a valasz, nem tipp.
+    """
     f = call.func
     if isinstance(f, ast.Call) and isinstance(f.func, ast.Name) and f.func.id == "getattr" \
-            and len(f.args) == 2 and isinstance(f.args[1], ast.Constant) \
-            and isinstance(f.args[1].value, str):
+            and "getattr" not in local and len(f.args) == 2:
+        attr = f.args[1]
+        name = None
+        if isinstance(attr, ast.Constant) and isinstance(attr.value, str):
+            name = attr.value
+        elif isinstance(attr, ast.Name) and consts and attr.id in consts:
+            c = consts[attr.id]
+            name = c.decode("utf-8", "replace") if isinstance(c, bytes) else c
+        if not isinstance(name, str):
+            return None
         base = _dotted(f.args[0])
-        return _resolve(base + "." + f.args[1].value, binds) if base else None
+        return _resolve(base + "." + name, binds) if base else None
     d = _dotted(f)
     if d is None:
         return None
