@@ -9,3 +9,8 @@
 {"code": "password = \"changeme\"\n", "line": 1, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python"}
 {"code": "conn = connect(host=\"db\", password=cfg.get(\"pw\"))\n", "line": 1, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python"}
 {"code": "username = \"admin\"\n", "line": 1, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python"}
+{"code": "PW = 'hunter2'\nconn = connect(host='db', password=PW)\n", "line": 2, "expected_verdict": "FLAG", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19219 review: binding vs name)"}
+{"code": "API_KEY = 'AKIA1234567890ABCD'\nclient = make(api_key=API_KEY)\n", "line": 2, "expected_verdict": "FLAG", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19219 review: binding vs name)"}
+{"code": "PW = ''\nconn = connect(password=PW)\n", "line": 2, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19219 review: binding vs name)"}
+{"code": "PW = 'changeme'\nconn = connect(password=PW)\n", "line": 2, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19219 review: binding vs name)"}
+{"code": "import os\nPW = os.environ['DB_PW']\nconn = connect(password=PW)\n", "line": 3, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python", "origin": "adversarial (zafire #19219 review: binding vs name)"}
