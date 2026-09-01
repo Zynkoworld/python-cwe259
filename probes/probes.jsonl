@@ -1,0 +1,11 @@
+{"code": "password = \"s3cr3t-pw\"\n", "line": 1, "expected_verdict": "FLAG", "cwe": "CWE-259", "lang": "python"}
+{"code": "api_key = \"AKIA1234567890ABCD\"\n", "line": 1, "expected_verdict": "FLAG", "cwe": "CWE-259", "lang": "python"}
+{"code": "conn = connect(host=\"db\", password=\"hunter2\")\n", "line": 1, "expected_verdict": "FLAG", "cwe": "CWE-259", "lang": "python"}
+{"code": "self.secret = \"topsecret\"\n", "line": 1, "expected_verdict": "FLAG", "cwe": "CWE-259", "lang": "python"}
+{"code": "access_key = \"abc123def456\"\n", "line": 1, "expected_verdict": "FLAG", "cwe": "CWE-259", "lang": "python"}
+{"code": "import os\npassword = os.environ[\"DB_PASSWORD\"]\n", "line": 2, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python"}
+{"code": "import os\napi_key = os.getenv(\"API_KEY\")\n", "line": 2, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python"}
+{"code": "password = \"\"\n", "line": 1, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python"}
+{"code": "password = \"changeme\"\n", "line": 1, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python"}
+{"code": "conn = connect(host=\"db\", password=cfg.get(\"pw\"))\n", "line": 1, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python"}
+{"code": "username = \"admin\"\n", "line": 1, "expected_verdict": "SAFE", "cwe": "CWE-259", "lang": "python"}
