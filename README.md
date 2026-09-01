@@ -51,5 +51,20 @@ is deliberately **not** part of the `verify.py` gate — labelling those cases `
 would hide the gap instead of recording it. If a later version closes one of them, the change is visible
 there.
 
+## Scope of constant folding (declared)
+The decider follows a constant through **literal concatenation** (including multi-step), **adjacent
+string literals**, **constant-only f-strings**, and **case conversion** (`.upper()` / `.lower()`). Case
+conversion is inside the line because the algorithm comparison is already case-insensitive — leaving it
+out would be inconsistent rather than conservative.
+
+Every other way of deriving a constant — `%`-formatting, `.format()`, `''.join([...])`, indexing,
+unpacking, other string methods — and a **conditional name** (`x if c else y`) are outside that scope and
+are listed in `probes/known_limitations.jsonl`.
+
+The boundary is set by **declaration, not by adding evaluator branches**. Four rounds of adversarial
+review closed progressively more exotic forms at zero false positives; past this point each additional
+branch is one more place to be wrong, for a shrinking return. A reader who needs a form beyond this line
+can see exactly which one, and re-check it.
+
 ## License
 Apache-2.0 (see `LICENSE`).

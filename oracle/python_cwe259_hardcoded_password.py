@@ -8,6 +8,16 @@ value may be the literal itself OR a name bound to a string constant assigned el
 SAFE when the value comes from the environment or configuration (os.environ, os.getenv, config.get,
 getpass), or is an empty string / recognized placeholder. stdlib `ast` only; no code is executed.
 NO-VIRUS: the Bandit rule was re-implemented from its description; Bandit is not installed or run.
+
+SCOPE OF CONSTANT FOLDING (declared, so the boundary is visible rather than discovered):
+this decider follows a constant through literal concatenation (including multi-step), adjacent string
+literals, constant-only f-strings, and case conversion (`.upper()` / `.lower()` -- included because the
+algorithm comparison is already case-insensitive, so excluding it would be inconsistent rather than
+conservative). Every other way of deriving a constant -- %-formatting, `.format()`, `''.join([...])`,
+indexing, unpacking, other string methods -- and a conditional name (`x if c else y`) are OUTSIDE that
+scope and are recorded in `probes/known_limitations.jsonl`. The line is drawn by declaration, not by
+adding evaluator branches: each extra branch would be one more place to be wrong, for a shrinking
+return.
 """
 import ast
 
@@ -110,6 +120,15 @@ def _fold_str(node, tbl):
             return a + b
         if isinstance(a, bytes) and isinstance(b, bytes):
             return a + b
+        return None
+    # KIS/NAGYBETU-ATALAKITAS: nem "egy lepessel tovabb kovetjuk a konstanst", hanem kovetkezetesseg
+    # egy dontessel, amit a decider mar meghozott -- az algoritmus-nevet amugy is kis/nagybetu-
+    # fuggetlenul hasonlitja. Minden EGYEB str-metodus a deklaralt hatokoron KIVUL van.
+    if isinstance(node, ast.Call) and not node.args and not node.keywords \
+            and isinstance(node.func, ast.Attribute) and node.func.attr in ("upper", "lower"):
+        base = _fold_str(node.func.value, tbl)
+        if isinstance(base, str):
+            return base.upper() if node.func.attr == "upper" else base.lower()
         return None
     if isinstance(node, ast.JoinedStr):
         parts = []
